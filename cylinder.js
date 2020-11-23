@@ -1,6 +1,6 @@
 //code adapted from http://www.songho.ca/opengl/gl_cylinder.html
 
-const sectorCount = 24;
+const sectorCount = 48;
 var cylinderPointsCount = 0;
 
 // generate a unit circle on XY-plane
@@ -14,8 +14,8 @@ function getUnitCircleVertices()
     {
         sectorAngle = i * sectorStep;
         unitCircleVertices.push(Math.sin(sectorAngle) * 0.5); // x
-        unitCircleVertices.push(Math.cos(sectorAngle) * 0.5); // y
-        unitCircleVertices.push(0);// z
+        unitCircleVertices.push(0);// y
+        unitCircleVertices.push(Math.cos(sectorAngle) * 0.5); // z
     }
     return unitCircleVertices;
 }
@@ -40,71 +40,71 @@ function buildCylinder()
         
         //bottom face-----------------------------------------------
         // position vector: vx, vy, vz, 1.0
-        p1 = vec4(ux1, uy1, h1, 1.0);
-        p2 = vec4(ux2, uy2, h1, 1.0);
-        p3 = vec4(0, 0, h1, 1.0);
+        p1 = vec4(ux1, h1, uz1, 1.0);
+        p2 = vec4(ux2, h1, uz2, 1.0);
+        p3 = vec4(0, h1, 0, 1.0);
         points.push(p1);
         points.push(p2);
         points.push(p3);
         cylinderPointsCount+=3;
         //color
-        colors.push(vertexColors[1]);
-        colors.push(vertexColors[1]);
-        colors.push(vertexColors[1]);
+        // colors.push(vertexColors[1]);
+        // colors.push(vertexColors[1]);
+        // colors.push(vertexColors[1]);
         // normal vector
-        // normals.push((ux1+ux2)/2);                       // nx
-        // normals.push((uy1+uy2)/2);                       // ny
-        // normals.push((uz1+uz2)/2);                       // nz
+        normals.push(vec3(0.0, 1.0, 0.0)); 
+        normals.push(vec3(0.0, 1.0, 0.0)); 
+        normals.push(vec3(0.0, 1.0, 0.0)); 
 
         //top face ---------------------------------------------------
         // position vector: vx, vy, vz, 1.0
-        p1 = vec4(ux1, uy1, h2, 1.0);
-        p2 = vec4(ux2, uy2, h2, 1.0);
-        p3 = vec4(0, 0, h2, 1.0);
+        p1 = vec4(ux1, h2, uz1, 1.0);
+        p2 = vec4(ux2, h2, uz2, 1.0);
+        p3 = vec4(0, h2, 0, 1.0);
         points.push(p1);
         points.push(p2);
         points.push(p3);
         cylinderPointsCount+=3;
         //color
-        colors.push(vertexColors[1]);
-        colors.push(vertexColors[1]);
-        colors.push(vertexColors[1]);
+        // colors.push(vertexColors[1]);
+        // colors.push(vertexColors[1]);
+        // colors.push(vertexColors[1]);
         // normal vector
-        // normals.push((ux1+ux2)/2);                       // nx
-        // normals.push((uy1+uy2)/2);                       // ny
-        // normals.push((uz1+uz2)/2);                       // nz
+        normals.push(vec3(0.0, 1.0, 0.0)); 
+        normals.push(vec3(0.0, 1.0, 0.0)); 
+        normals.push(vec3(0.0, 1.0, 0.0)); 
 
         //body-------------------------------------------------------
-        p1 = vec4(ux1, uy1, h1, 1.0);
-        p2 = vec4(ux2, uy2, h1, 1.0);
-        p3 = vec4(ux1, uy1, h2, 1.0);
+        p1 = vec4(ux1, h1, uz1, 1.0);
+        p2 = vec4(ux2, h1, uz2, 1.0);
+        p3 = vec4(ux1, h2, uz1, 1.0);
         points.push(p1);
         points.push(p2);
         points.push(p3);
         cylinderPointsCount+=3;
         //color
-        colors.push(vertexColors[3]);
-        colors.push(vertexColors[3]);
-        colors.push(vertexColors[3]);
+        // colors.push(vertexColors[3]);
+        // colors.push(vertexColors[3]);
+        // colors.push(vertexColors[3]);
         // normal vector
-        // normals.push((ux1+ux2)/2);                       // nx
-        // normals.push((uy1+uy2)/2);                       // ny
-        // normals.push((uz1+uz2)/2);                       // nz
+        normals.push(vec3(ux1, 0.0, uz1)); 
+        normals.push(vec3(ux2, 0.0, uz2)); 
+        normals.push(vec3(ux1, 0.0, uz1)); 
 
-        p1 = vec4(ux1, uy1, h2, 1.0);
-        p2 = vec4(ux2, uy2, h2, 1.0);
-        p3 = vec4(ux2, uy2, h1, 1.0);
+        p1 = vec4(ux1, h2, uz1, 1.0);
+        p2 = vec4(ux2, h2, uz2, 1.0);
+        p3 = vec4(ux2, h1, uz2, 1.0);
         points.push(p1);
         points.push(p2);
         points.push(p3);
         cylinderPointsCount+=3;
         //color
-        colors.push(vertexColors[3]);
-        colors.push(vertexColors[3]);
-        colors.push(vertexColors[3]);
+        // colors.push(vertexColors[3]);
+        // colors.push(vertexColors[3]);
+        // colors.push(vertexColors[3]);
         // normal vector
-        // normals.push((ux1+ux2)/2);                       // nx
-        // normals.push((uy1+uy2)/2);                       // ny
-        // normals.push((uz1+uz2)/2);                       // nz
+        normals.push(vec3(ux1, 0.0, uz1)); // nx
+        normals.push(vec3(ux2, 0.0, uz2)); // ny
+        normals.push(vec3(ux2, 0.0, uy2)); // nz
     }  
 }

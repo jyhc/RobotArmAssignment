@@ -5,32 +5,23 @@ var canvas, gl, program;
 var NumVertices = 36; //(6 faces)(2 triangles/face)(3 vertices/triangle)
 
 var points = [];
-var colors = [];
 var normals = [];
 
 var vertices = [
-    vec4( -0.5, -0.5,  0.5, 1.0 ),
-    vec4( -0.5,  0.5,  0.5, 1.0 ),
-    vec4(  0.5,  0.5,  0.5, 1.0 ),
-    vec4(  0.5, -0.5,  0.5, 1.0 ),
-    vec4( -0.5, -0.5, -0.5, 1.0 ),
-    vec4( -0.5,  0.5, -0.5, 1.0 ),
-    vec4(  0.5,  0.5, -0.5, 1.0 ),
-    vec4(  0.5, -0.5, -0.5, 1.0 )
+    vec4( -0.5, -0.5,  0.5, 1.0 ),//0
+    vec4( -0.5,  0.5,  0.5, 1.0 ),//1
+    vec4(  0.5,  0.5,  0.5, 1.0 ),//2
+    vec4(  0.5, -0.5,  0.5, 1.0 ),//3
+    vec4( -0.5, -0.5, -0.5, 1.0 ),//4
+    vec4( -0.5,  0.5, -0.5, 1.0 ),//5
+    vec4(  0.5,  0.5, -0.5, 1.0 ),//6
+    vec4(  0.5, -0.5, -0.5, 1.0 )//7
 ];
 
-// RGBA colors
-var vertexColors = [
-    vec4( 0.0, 0.0, 0.0, 1.0 ),  // black
-    vec4( 1.0, 0.0, 0.0, 1.0 ),  // red
-    vec4( 1.0, 1.0, 0.0, 1.0 ),  // yellow
-    vec4( 0.0, 1.0, 0.0, 1.0 ),  // green
-    vec4( 0.0, 0.0, 1.0, 1.0 ),  // blue
-    vec4( 1.0, 0.0, 1.0, 1.0 ),  // magenta
-    vec4( 1.0, 1.0, 1.0, 1.0 ),  // white
-    vec4( 0.0, 1.0, 1.0, 1.0 )   // cyan
-];
-
+var ambientColor = [0.33, 0.22, 0.03];
+var diffuseColor = [0.78, 0.57, 0.11];
+var specularColor = [0.99, 0.91, 0.81];
+var lightPosition = [1.0, 1.0, 1.0];
 
 // Parameters controlling the size of the Robot's arm
 
@@ -43,7 +34,7 @@ var UPPER_ARM_WIDTH  = 0.3;
 
 // Shader transformation matrices
 
-var modelViewMatrix, projectionMatrix;
+var modelViewMatrix, projectionMatrix, normalMatrix;
 
 // Array of rotation angles (in degrees) for each rotation axis
 
@@ -58,34 +49,70 @@ var angle = 0;
 
 var modelViewMatrixLoc;
 
-var vBuffer, cBuffer;
+var vBuffer, nBuffer;
 
 //----------------------------------------------------------------------------
 
 //each face
 function quad(  a,  b,  c,  d ) {
-    colors.push(vertexColors[a]);
+    
     points.push(vertices[a]);
-    colors.push(vertexColors[a]);
+
     points.push(vertices[b]);
-    colors.push(vertexColors[a]);
+    
     points.push(vertices[c]);
-    colors.push(vertexColors[a]);
+    
     points.push(vertices[a]);
-    colors.push(vertexColors[a]);
+    
     points.push(vertices[c]);
-    colors.push(vertexColors[a]);
+    
     points.push(vertices[d]);
 }
 
 
 function colorCube() {
     quad( 1, 0, 3, 2 );
-    quad( 2, 3, 7, 6 );
+    normals.push(vec3(0, 0, 1.0));
+    normals.push(vec3(0, 0, 1.0));
+    normals.push(vec3(0, 0, 1.0));
+    normals.push(vec3(0, 0, 1.0));
+    normals.push(vec3(0, 0, 1.0));
+    normals.push(vec3(0, 0, 1.0));
+    quad( 2, 3, 7, 6 ); 
+    normals.push(vec3(1.0, 0, 0));
+    normals.push(vec3(1.0, 0, 0));
+    normals.push(vec3(1.0, 0, 0));
+    normals.push(vec3(1.0, 0, 0));
+    normals.push(vec3(1.0, 0, 0));
+    normals.push(vec3(1.0, 0, 0));
     quad( 3, 0, 4, 7 );
+    normals.push(vec3(0, -1.0, 0));
+    normals.push(vec3(0, -1.0, 0));
+    normals.push(vec3(0, -1.0, 0));
+    normals.push(vec3(0, -1.0, 0));
+    normals.push(vec3(0, -1.0, 0));
+    normals.push(vec3(0, -1.0, 0));
     quad( 6, 5, 1, 2 );
+    normals.push(vec3(0, 1.0, 0));
+    normals.push(vec3(0, 1.0, 0));
+    normals.push(vec3(0, 1.0, 0));
+    normals.push(vec3(0, 1.0, 0));
+    normals.push(vec3(0, 1.0, 0));
+    normals.push(vec3(0, 1.0, 0));
     quad( 4, 5, 6, 7 );
+    normals.push(vec3(0, 0, -1.0));
+    normals.push(vec3(0, 0, -1.0));
+    normals.push(vec3(0, 0, -1.0));
+    normals.push(vec3(0, 0, -1.0));
+    normals.push(vec3(0, 0, -1.0));
+    normals.push(vec3(0, 0, -1.0));
     quad( 5, 4, 0, 1 );
+    normals.push(vec3(-1.0, 0, 0));
+    normals.push(vec3(-1.0, 0, 0));
+    normals.push(vec3(-1.0, 0, 0));
+    normals.push(vec3(-1.0, 0, 0));
+    normals.push(vec3(-1.0, 0, 0));
+    normals.push(vec3(-1.0, 0, 0));
 }
 
 //____________________________________________
@@ -112,59 +139,67 @@ window.onload = function init() {
     if ( !gl ) { alert( "WebGL isn't available" ); }
 
     gl.viewport( 0, 0, canvas.width, canvas.height );
-
+    
     gl.clearColor( 1.0, 1.0, 1.0, 1.0 );
     gl.enable( gl.DEPTH_TEST );
-
+    
     //
     //  Load shaders and initialize attribute buffers
     //
     program = initShaders( gl, "vertex-shader", "fragment-shader" );
-
+    
     gl.useProgram( program );
-
+    
     //populate positions with cylinder points and colors with cylinder colors
     buildCylinder();
-
+    
     colorCube();
-
+    
     // Load shaders and use the resulting shader program
-
+    
     program = initShaders( gl, "vertex-shader", "fragment-shader" );
     gl.useProgram( program );
+    
+    normalMatrix = mat4();
+    gl.uniformMatrix4fv(gl.getUniformLocation(program, "normalMatrix"),  false, flatten(normalMatrix));
 
     // Create and initialize  buffer objects
-
+    
     vBuffer = gl.createBuffer();
     gl.bindBuffer( gl.ARRAY_BUFFER, vBuffer );
     gl.bufferData( gl.ARRAY_BUFFER, flatten(points), gl.STATIC_DRAW );
-
+    
     var vPosition = gl.getAttribLocation( program, "vPosition" );
     gl.vertexAttribPointer( vPosition, 4, gl.FLOAT, false, 0, 0 );
     gl.enableVertexAttribArray( vPosition );
-
-    cBuffer = gl.createBuffer();
-    gl.bindBuffer( gl.ARRAY_BUFFER, cBuffer );
-    gl.bufferData( gl.ARRAY_BUFFER, flatten(colors), gl.STATIC_DRAW );
-
-    var vColor = gl.getAttribLocation( program, "vColor" );
-    gl.vertexAttribPointer( vColor, 4, gl.FLOAT, false, 0, 0 );
-    gl.enableVertexAttribArray( vColor );
-
+    
+    nBuffer = gl.createBuffer();
+    gl.bindBuffer( gl.ARRAY_BUFFER, nBuffer );
+    gl.bufferData( gl.ARRAY_BUFFER, flatten(normals), gl.STATIC_DRAW );
+    
+    var inputNormal = gl.getAttribLocation( program, "inputNormal" );
+    gl.vertexAttribPointer(inputNormal, 3, gl.FLOAT, false, 0, 0 );
+    gl.enableVertexAttribArray(inputNormal);
+    
     document.getElementById("slider1").onchange = function(event) {
         theta[0] = event.target.value;
     };
     document.getElementById("slider2").onchange = function(event) {
-         theta[1] = event.target.value;
+        theta[1] = event.target.value;
     };
     document.getElementById("slider3").onchange = function(event) {
-         theta[2] =  event.target.value;
+        theta[2] =  event.target.value;
     };
-
+    
     modelViewMatrixLoc = gl.getUniformLocation(program, "modelViewMatrix");
-
     projectionMatrix = ortho(-10, 10, -10, 10, -10, 10);
+    
     gl.uniformMatrix4fv( gl.getUniformLocation(program, "projectionMatrix"),  false, flatten(projectionMatrix) );
+
+    gl.uniform3fv(gl.getUniformLocation(program, "ambientColor"), ambientColor);
+    gl.uniform3fv(gl.getUniformLocation(program, "diffuseColor"), diffuseColor);
+    gl.uniform3fv(gl.getUniformLocation(program, "specularColor"), specularColor);
+    gl.uniform3fv(gl.getUniformLocation(program, "lightPos"), lightPosition);
 
     render();
 }
@@ -175,10 +210,15 @@ window.onload = function init() {
 
 function base() {
     var s = scale4(BASE_RADIUS, BASE_HEIGHT, BASE_RADIUS);
-    var instanceMatrix = mult(rotate(90, 1.0, 0, 0), s);
-    instanceMatrix = mult( translate( 0.0, 0.5 * BASE_HEIGHT, 0.0 ), instanceMatrix);
+    // s = mult(rotate(90, 1, 0 , 0), s);
+    var instanceMatrix = mult( translate( 0.0, 0.5 * BASE_HEIGHT, 0.0 ), s);
     var t = mult(modelViewMatrix, instanceMatrix);
     gl.uniformMatrix4fv(modelViewMatrixLoc,  false, flatten(t) );
+
+    var r = inverse4(modelViewMatrix);
+    r = transpose(r);    
+    gl.uniformMatrix4fv(gl.getUniformLocation(program, "normalMatrix"),  false, flatten(r));
+
     gl.drawArrays( gl.TRIANGLES, 0, cylinderPointsCount);
 }
 
@@ -190,6 +230,11 @@ function upperArm() {
     var instanceMatrix = mult(translate( 0.0, 0.5 * UPPER_ARM_HEIGHT, 0.0 ),s);
     var t = mult(modelViewMatrix, instanceMatrix);
     gl.uniformMatrix4fv( modelViewMatrixLoc,  false, flatten(t) );
+
+    var r = inverse4(modelViewMatrix);
+    r = transpose(r);    
+    gl.uniformMatrix4fv(gl.getUniformLocation(program, "normalMatrix"),  false, flatten(r));
+    
     gl.drawArrays( gl.TRIANGLES, cylinderPointsCount, NumVertices );
 }
 
@@ -202,6 +247,11 @@ function lowerArm()
     var instanceMatrix = mult( translate( 0.0, 0.5 * LOWER_ARM_HEIGHT, 0.0 ), s);
     var t = mult(modelViewMatrix, instanceMatrix);
     gl.uniformMatrix4fv( modelViewMatrixLoc,  false, flatten(t) );
+
+    var r = inverse4(modelViewMatrix);
+    r = transpose(r);    
+    gl.uniformMatrix4fv(gl.getUniformLocation(program, "normalMatrix"),  false, flatten(r));
+
     gl.drawArrays( gl.TRIANGLES, cylinderPointsCount, NumVertices );
 }
 
@@ -213,6 +263,7 @@ var render = function() {
     gl.clear( gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT );
 
     modelViewMatrix = rotate(theta[Base], 0, 1, 0 );
+
     base();
 
     modelViewMatrix = mult(modelViewMatrix, translate(0.0, BASE_HEIGHT, 0.0));
@@ -225,4 +276,3 @@ var render = function() {
 
     requestAnimFrame(render);
 }
-
