@@ -23,6 +23,13 @@ var diffuseColor = [0.78, 0.57, 0.11];
 var specularColor = [0.99, 0.91, 0.81];
 var lightPosition = [1.0, 1.0, 1.0];
 
+var ambientArm1 = [0.0, 0.40, 0.0]
+var diffuseArm1 = [0.0, 0.95, 0.0];
+
+
+var ambientArm2 = [0.40, 0.0, 0.0]
+var diffuseArm2 = [0.95, 0.0, 0.0];
+
 // Parameters controlling the size of the Robot's arm
 
 var BASE_HEIGHT      = 0.5;
@@ -42,6 +49,8 @@ var Base = 0;
 var LowerArm = 1;
 var UpperArm = 2;
 
+var sideview = true;
+var sideProjection, topProjection;
 
 var theta= [ 0, 0, 0];
 
@@ -192,12 +201,12 @@ window.onload = function init() {
     };
     
     modelViewMatrixLoc = gl.getUniformLocation(program, "modelViewMatrix");
-    projectionMatrix = ortho(-10, 10, -10, 10, -10, 10);
     
-    gl.uniformMatrix4fv( gl.getUniformLocation(program, "projectionMatrix"),  false, flatten(projectionMatrix) );
+    sideProjection = ortho(-10, 10, -10, 10, -10, 10);
+    topProjection = mult(rotateX(-90), sideProjection);
 
-    gl.uniform3fv(gl.getUniformLocation(program, "ambientColor"), ambientColor);
-    gl.uniform3fv(gl.getUniformLocation(program, "diffuseColor"), diffuseColor);
+    // gl.uniform3fv(gl.getUniformLocation(program, "ambientColor"), ambientColor);
+    // gl.uniform3fv(gl.getUniformLocation(program, "diffuseColor"), diffuseColor);
     gl.uniform3fv(gl.getUniformLocation(program, "specularColor"), specularColor);
     gl.uniform3fv(gl.getUniformLocation(program, "lightPos"), lightPosition);
 
@@ -219,6 +228,9 @@ function base() {
     r = transpose(r);    
     gl.uniformMatrix4fv(gl.getUniformLocation(program, "normalMatrix"),  false, flatten(r));
 
+    gl.uniform3fv(gl.getUniformLocation(program, "diffuseColor"), diffuseColor);
+    gl.uniform3fv(gl.getUniformLocation(program, "ambientColor"), ambientColor);
+
     gl.drawArrays( gl.TRIANGLES, 0, cylinderPointsCount);
 }
 
@@ -234,6 +246,9 @@ function upperArm() {
     var r = inverse4(modelViewMatrix);
     r = transpose(r);    
     gl.uniformMatrix4fv(gl.getUniformLocation(program, "normalMatrix"),  false, flatten(r));
+
+    gl.uniform3fv(gl.getUniformLocation(program, "diffuseColor"), diffuseArm1);
+    gl.uniform3fv(gl.getUniformLocation(program, "ambientColor"), ambientArm1);
     
     gl.drawArrays( gl.TRIANGLES, cylinderPointsCount, NumVertices );
 }
@@ -252,6 +267,9 @@ function lowerArm()
     r = transpose(r);    
     gl.uniformMatrix4fv(gl.getUniformLocation(program, "normalMatrix"),  false, flatten(r));
 
+    gl.uniform3fv(gl.getUniformLocation(program, "diffuseColor"), diffuseArm2);
+    gl.uniform3fv(gl.getUniformLocation(program, "ambientColor"), ambientArm2);
+
     gl.drawArrays( gl.TRIANGLES, cylinderPointsCount, NumVertices );
 }
 
@@ -264,6 +282,14 @@ var render = function() {
 
     modelViewMatrix = rotate(theta[Base], 0, 1, 0 );
 
+    if(sideview){
+        projectionMatrix = sideProjection;
+    } else {
+        projectionMatrix = topProjection;
+    }
+
+    gl.uniformMatrix4fv( gl.getUniformLocation(program, "projectionMatrix"),  false, flatten(projectionMatrix) );
+
     base();
 
     modelViewMatrix = mult(modelViewMatrix, translate(0.0, BASE_HEIGHT, 0.0));
@@ -275,4 +301,16 @@ var render = function() {
     upperArm();
 
     requestAnimFrame(render);
+}
+
+function change(){
+    var elem = document.getElementById("myButton1");
+    if (elem.value=="Top View"){
+        elem.value = "Side View";
+        sideview = false;
+    }
+    else {
+        elem.value = "Top View";
+        sideview = true;
+    }
 }
