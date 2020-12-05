@@ -4,6 +4,8 @@ var canvas, gl, program;
 
 var NumVertices = 36; //(6 faces)(2 triangles/face)(3 vertices/triangle)
 
+const sectorCount = 96; //sphere and cynlinder sectors; influences how approximate the triangles are
+
 var points = [];
 var normals = [];
 
@@ -21,7 +23,7 @@ var vertices = [
 var ambientColor = [0.33, 0.22, 0.03];
 var diffuseColor = [0.78, 0.57, 0.11];
 var specularColor = [0.99, 0.91, 0.81];
-var lightPosition = [1.0, 1.0, 1.0];
+var lightPosition = [10.0, 10.0, 10.0];
 
 var ambientArm1 = [0.0, 0.40, 0.0]
 var diffuseArm1 = [0.0, 0.95, 0.0];
@@ -38,6 +40,7 @@ var LOWER_ARM_HEIGHT = 2.0;
 var LOWER_ARM_WIDTH  = 0.3;
 var UPPER_ARM_HEIGHT = 2.0;
 var UPPER_ARM_WIDTH  = 0.3;
+var SPHERE_RADIUS = 1.0;
 
 // Shader transformation matrices
 
@@ -52,7 +55,7 @@ var UpperArm = 2;
 var sideview = true;
 var sideProjection, topProjection;
 
-var theta= [ 0, 0, 0];
+var theta= [140, 40, 50]; //arrangement showing specular highlight
 
 var angle = 0;
 
@@ -159,10 +162,10 @@ window.onload = function init() {
     
     gl.useProgram( program );
     
-    //populate positions with cylinder points and colors with cylinder colors
+
     buildCylinder();
-    
     colorCube();
+    buildSphere();
     
     // Load shaders and use the resulting shader program
     
@@ -215,8 +218,6 @@ window.onload = function init() {
 
 //----------------------------------------------------------------------------
 
-//index where cube model starts
-
 function base() {
     var s = scale4(BASE_RADIUS, BASE_HEIGHT, BASE_RADIUS);
     // s = mult(rotate(90, 1, 0 , 0), s);
@@ -250,7 +251,7 @@ function upperArm() {
     gl.uniform3fv(gl.getUniformLocation(program, "diffuseColor"), diffuseArm1);
     gl.uniform3fv(gl.getUniformLocation(program, "ambientColor"), ambientArm1);
     
-    gl.drawArrays( gl.TRIANGLES, cylinderPointsCount, NumVertices );
+    gl.drawArrays( gl.TRIANGLES, cylinderPointsCount, NumVertices);
 }
 
 //----------------------------------------------------------------------------
@@ -273,6 +274,22 @@ function lowerArm()
     gl.drawArrays( gl.TRIANGLES, cylinderPointsCount, NumVertices );
 }
 
+function ball() {
+    var s = scale4(SPHERE_RADIUS, SPHERE_RADIUS, SPHERE_RADIUS);
+    // s = mult(rotate(90, 1, 0 , 0), s);
+    var instanceMatrix = mult( translate( 0.0, 0.5 * SPHERE_RADIUS, 0.0 ), s);
+    var t = mult(modelViewMatrix, instanceMatrix);
+    gl.uniformMatrix4fv(modelViewMatrixLoc,  false, flatten(t) );
+
+    var r = inverse4(modelViewMatrix);
+    r = transpose(r);    
+    gl.uniformMatrix4fv(gl.getUniformLocation(program, "normalMatrix"),  false, flatten(r));
+
+    gl.uniform3fv(gl.getUniformLocation(program, "diffuseColor"), diffuseColor);
+    gl.uniform3fv(gl.getUniformLocation(program, "ambientColor"), ambientColor);
+
+    gl.drawArrays( gl.TRIANGLES, cylinderPointsCount+NumVertices, spherePointsCount);
+}
 //----------------------------------------------------------------------------
 
 
@@ -280,26 +297,31 @@ var render = function() {
 
     gl.clear( gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT );
 
+    
     modelViewMatrix = rotate(theta[Base], 0, 1, 0 );
-
+    
     if(sideview){
         projectionMatrix = sideProjection;
     } else {
         projectionMatrix = topProjection;
     }
-
+    
     gl.uniformMatrix4fv( gl.getUniformLocation(program, "projectionMatrix"),  false, flatten(projectionMatrix) );
-
+    
+    
     base();
-
+    
     modelViewMatrix = mult(modelViewMatrix, translate(0.0, BASE_HEIGHT, 0.0));
     modelViewMatrix = mult(modelViewMatrix, rotate(theta[LowerArm], 0, 0, 1 ));
     lowerArm();
-
+    
     modelViewMatrix  = mult(modelViewMatrix, translate(0.0, LOWER_ARM_HEIGHT, 0.0));
     modelViewMatrix  = mult(modelViewMatrix, rotate(theta[UpperArm], 0, 0, 1) );
     upperArm();
 
+    modelViewMatrix  = mult(modelViewMatrix, translate(0.0, UPPER_ARM_HEIGHT, 0.0));
+    ball();
+    
     requestAnimFrame(render);
 }
 

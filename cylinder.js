@@ -1,6 +1,5 @@
 //code adapted from http://www.songho.ca/opengl/gl_cylinder.html
 
-const sectorCount = 48;
 var cylinderPointsCount = 0;
 
 // generate a unit circle on XY-plane
